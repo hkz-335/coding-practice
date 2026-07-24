@@ -8,59 +8,55 @@
 using namespace std;
 
 
-int64_t n, m, p[510];
-int64_t cap[510][510];
-vector<int64_t> adj[510];
+int n,q;
+char arr[1010][1010];
+int prefix[1010][1010];
 
-int64_t bfs(int64_t s = 1, int64_t t = n){
-    fill(p+1, p+n+1, -1);
-    p[s] = -2;
-
-    queue<pair<int64_t,int64_t>> queue;
-    queue.push({s, INT_MAX});
-    while(!queue.empty()){
-        int64_t u = queue.front().first;
-        int64_t f = queue.front().second;
-        queue.pop();
-        for(int64_t v : adj[u]){
-            if(p[v] == -1 && cap[u][v]){
-                p[v] = u;
-                int64_t aug = min(f, cap[u][v]);
-                if(v == t)  return aug;
-                queue.push({v, aug});
-            }
+void update(int x, int y, int val){
+    for(int i = x; i <= n; i += -i&i) {
+        for(int j = y; j <= n; j += -j&j) {
+            prefix[i][j] += val;
         }
     }
-    return 0;
 }
 
-int64_t maxflow(int64_t s = 1, int64_t t = n){
-    int64_t flow = 0, aug = 0;
-    while(aug = bfs()){
-        flow += aug;
-        int64_t u = t;
-        while(u != s){
-            int64_t v = p[u];
-            cap[v][u] -= aug;
-            cap[u][v] += aug;
-            u = v;
-        }
-    }
-    return flow;
-}
-
-void read() {
-    cin>>n>>m;
-    for (int64_t i = 0;i<m;i++) {
-        int64_t a, b, c;
-        cin>>a>>b>>c;
-        adj[a].push_back(b);
-        adj[b].push_back(a);
-        cap[a][b]+=c;
-    }
+int query(int x, int y){
+    int sum = 0;
+    for(int i = x; i > 0; i -= -i&i)
+        for(int j = y; j > 0; j -= -j&j)
+            sum += prefix[i][j];
+    return sum;
 }
 
 int main(){
-    read();
-    cout<<maxflow();
+    cin>>n>>q;
+    for(int i = 1; i <= n; i++){
+        string s;
+        cin>>s;
+        for(int j = 1; j <= n; j++){
+            arr[i][j]=s[j-1];
+            if(arr[i][j] == '*') {
+                update(i, j, 1);
+            }
+        }
+    }
+    while (q--){
+        int t;
+        cin>>t;
+        if(t == 1){
+            int x, y;
+            cin>>x>>y;
+            if(arr[x][y] == '*'){
+                update(x, y, -1);
+                arr[x][y] = '.';
+            } else if(arr[x][y] == '.'){
+                update(x, y, 1);
+                arr[x][y] = '*';
+            }
+        } else if(t == 2){
+            int x1,y1,x2,y2;
+            cin>>x1>>y1>>x2>>y2;
+            cout<<query(x2, y2)-query(x2,y1-1)-query(x1-1,y2)+query(x1-1,y1-1)<<endl;
+        }
+    }
 }
